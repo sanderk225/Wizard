@@ -330,6 +330,8 @@ Why: More reliable than tapping number pad on phone
 - Buttons (- / +) flanking the input field
 - Tap-and-hold to increment rapidly
 - Max/min constraints (0 to hand size)
+- Apply `touch-action: manipulation` to stepper buttons so rapid taps do not trigger iPhone double-tap zoom; preserve normal page scrolling and pinch-to-zoom elsewhere
+- Disable text selection and the touch callout on stepper buttons so repeated taps remain focused on score entry
 
 ### 2. **Trump Suit Visual**
 - Five-option segmented control: ♠, ♥, ♦, ♣, **None**
@@ -665,6 +667,7 @@ Before considering the app ready for phone use, verify:
 - Bid corrections and tricks corrections update all affected scores.
 - Tricks can be entered in any order; Score Round enables when their total equals the round number, and untouched players become zero.
 - Bid/trick stepper changes do not animate or shift the same-screen layout.
+- Rapid repeated taps on bid/trick steppers change the value without triggering iPhone double-tap zoom, text selection, or the touch callout.
 - Round and Total columns remain aligned for positive and negative three-digit scores on a small iPhone viewport.
 - Round history shows one scorecard with every completed round and, for every player, Bid, Won, Round, and Total metrics; both scroll directions remain usable on a small iPhone viewport.
 - Rules & FAQ can be opened from Home and during a round, shows the complete reference, and returns to the exact originating route without changing game state.

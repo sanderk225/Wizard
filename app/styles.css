@@ -277,7 +277,19 @@ p { line-height: 1.5; }
 .entry-person strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .entry-person small { color: var(--muted); font-size: 12px; }
 .stepper { display: grid; grid-template-columns: 44px 52px 44px; align-items: center; width: 140px; min-height: 48px; border: 1px solid #aaa99f; border-radius: 6px; overflow: hidden; background: var(--white); }
-.stepper button { min-width: 44px; min-height: 48px; padding: 0; border: 0; background: transparent; font-size: 20px; font-weight: 800; }
+.stepper button {
+  min-width: 44px;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  font-weight: 800;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 .stepper button:first-child { border-right: 1px solid var(--line); }
 .stepper button:last-child { border-left: 1px solid var(--line); }
 .stepper .stepper-value { min-width: 52px; color: var(--navy); font-size: 18px; }
