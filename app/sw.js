@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wizard-scores-v15'
+const CACHE_NAME = 'wizard-scores-v16'
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,8 +8,8 @@ const APP_SHELL = [
   './storage.js',
   './rules.js',
   './manifest.webmanifest',
-  './icon-180.png',
-  './icon-512.png',
+  './wizard-brand-icon-180-v2.png',
+  './wizard-brand-icon-512-v2.png',
 ]
 
 self.addEventListener('install', (event) => {

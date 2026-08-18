@@ -196,6 +196,18 @@ Delete only the Home Screen icon, then repeat the installation from Safari using
 
 If it remains stale, remove the Home Screen icon and add it again from Safari. Avoid clearing all Safari website data unless necessary because that can erase locally stored games.
 
+### The Home Screen icon still shows the old design
+
+iOS stores the icon when **Add to Home Screen** is performed and does not reliably replace it during normal application updates. After an icon update is deployed:
+
+1. Connect the iPhone to the internet.
+2. Open the published Wizard Scores address directly in Safari and refresh the page.
+3. Remove the existing Wizard icon from the Home Screen. Choose **Delete Bookmark** or **Remove from Home Screen**, depending on the iOS version.
+4. In Safari, tap **Share > Add to Home Screen**.
+5. Confirm the preview shows the new blue, red, and yellow Wizard icon, then tap **Add**.
+
+Removing only the Home Screen icon does not normally clear the website's saved games. Do not clear Safari history or website data to refresh an icon.
+
 ### Offline mode does not work
 
 - Open the published HTTPS site while online before testing offline.

@@ -71,7 +71,7 @@ function appHeader(title, options = {}) {
   const { eyebrow = 'Wizard Scores', backAction = '', action = '' } = options
   return `
     <header class="topbar">
-      ${backAction ? `<button class="icon-button" data-action="${backAction}" aria-label="Go back">←</button>` : '<img class="brand-mark" src="./icon-180.png" alt="" />'}
+      ${backAction ? `<button class="icon-button" data-action="${backAction}" aria-label="Go back">←</button>` : '<img class="brand-mark" src="./wizard-brand-icon-180-v2.png" alt="" />'}
       <div class="topbar-title">
         <span>${escapeHtml(eyebrow)}</span>
         <strong>${escapeHtml(title)}</strong>
@@ -137,7 +137,7 @@ function renderHome() {
   return `
     <main class="home-view">
       <section class="home-hero">
-        <img src="./icon-512.png" class="hero-mark" alt="" />
+        <img src="./wizard-brand-icon-512-v2.png" class="hero-mark" alt="" />
         <p class="kicker">Pocket scorekeeper</p>
         <h1>Wizard</h1>
         <p class="hero-copy">Bids, tricks, and standings. One round at a time.</p>
