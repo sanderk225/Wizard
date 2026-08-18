@@ -6,6 +6,7 @@ import {
   cumulativePoints,
   fillUnenteredTricksWithZero,
   findEntry,
+  scorecardRows,
   scoreEntry,
   standardRoundCount,
   tricksStatus,
@@ -89,6 +90,22 @@ test('correcting saved source values recalculates totals', () => {
   const round = game.rounds[0]
   findEntry(round, game.players[0].id).bid = 1
   equal(cumulativePoints(game, 1)[game.players[0].id], 30)
+})
+
+test('scorecard includes all four metrics for each completed round', () => {
+  const secondRound = game.rounds[1]
+  secondRound.entries.forEach((entry) => { entry.bid = 0; entry.tricksWon = 0 })
+  findEntry(secondRound, game.players[1].id).bid = 2
+  findEntry(secondRound, game.players[1].id).tricksWon = 2
+  completeRound(game, secondRound)
+  const rows = scorecardRows(game)
+  equal(rows.length, 2)
+  equal(rows[0].players[0].bid, 1)
+  equal(rows[0].players[0].tricksWon, 1)
+  equal(rows[0].players[0].roundScore, 30)
+  equal(rows[0].players[0].totalScore, 30)
+  equal(rows[1].players[0].roundScore, 20)
+  equal(rows[1].players[0].totalScore, 50)
 })
 
 test('rules reference includes rules and FAQ sections', () => {

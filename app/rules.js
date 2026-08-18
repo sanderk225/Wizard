@@ -143,6 +143,6 @@ export const RULE_SECTIONS = [
     type: 'faq',
     eyebrow: 'FAQ',
     title: 'What if a bid or trick was entered incorrectly?',
-    paragraphs: ['Use Correct bids or Correct tricks before saving the round. A completed round can also be opened from standings and corrected; later cumulative totals are recalculated automatically.'],
+    paragraphs: ['Use Correct bids or Correct tricks before saving the round. Once saved, the round appears as read-only history in the complete scorecard.'],
   },
 ]

@@ -109,6 +109,27 @@ export function standings(game) {
     .sort((left, right) => right.score - left.score || left.name.localeCompare(right.name))
 }
 
+export function scorecardRows(game) {
+  return game.rounds
+    .filter((round) => round.phase === 'complete')
+    .map((round) => {
+      const totals = cumulativePoints(game, round.number)
+      return {
+        roundNumber: round.number,
+        players: game.players.map((player) => {
+          const entry = findEntry(round, player.id)
+          return {
+            playerId: player.id,
+            bid: entry.bid,
+            tricksWon: entry.tricksWon,
+            roundScore: scoreEntry(entry),
+            totalScore: totals[player.id],
+          }
+        }),
+      }
+    })
+}
+
 export function currentRound(game) {
   return game.rounds[game.rounds.length - 1]
 }

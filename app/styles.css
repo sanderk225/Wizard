@@ -128,7 +128,7 @@ p { line-height: 1.5; }
 .rules-home-button { display: flex; align-items: center; justify-content: center; gap: 9px; }
 .rules-home-button span { display: grid; width: 24px; height: 24px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-family: Georgia, serif; font-weight: 700; }
 
-.primary-button, .secondary-button, .resume-panel, .add-player-button, .choice-chip, .text-button, .trump-button, .correction-tabs button {
+.primary-button, .secondary-button, .resume-panel, .add-player-button, .choice-chip, .text-button, .trump-button {
   min-height: 48px;
   border: 0;
   cursor: pointer;
@@ -157,7 +157,6 @@ p { line-height: 1.5; }
   background: transparent;
   font-weight: 800;
 }
-.secondary-button.full { width: 100%; margin-top: 20px; }
 .text-button { padding: 8px 4px; color: var(--navy); background: transparent; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .text-button.danger { color: var(--red); }
 
@@ -290,7 +289,6 @@ p { line-height: 1.5; }
 .hook-message.hidden { visibility: hidden; }
 .phase-summary.warning { color: #715719; }
 .phase-summary.error { color: var(--red); }
-.edit-link { display: block; margin: 8px auto 0; }
 
 .score-list { border-top: 1px solid var(--line); }
 .score-columns, .score-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 84px; gap: 10px; align-items: center; }
@@ -311,10 +309,32 @@ p { line-height: 1.5; }
 .rank-row.leader { color: var(--navy); }
 .rank-row.leader .rank { color: #5a4511; background: var(--gold); }
 .round-history { margin-top: 42px; }
-.round-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-.round-grid button { display: grid; min-height: 58px; place-items: center; align-content: center; border: 1px solid var(--line); border-radius: 6px; background: var(--white); }
-.round-grid button span { color: var(--muted); font-size: 11px; }
-.round-grid button.current { border-color: var(--gold); background: var(--gold-light); }
+.scorecard-scroll {
+  max-height: min(62dvh, 560px);
+  margin: 0 -20px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--white);
+  overscroll-behavior: contain;
+  scrollbar-color: var(--blue) var(--paper-deep);
+}
+.scorecard-table { width: max-content; min-width: 100%; border-spacing: 0; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+.scorecard-table th, .scorecard-table td { min-width: 58px; height: 42px; padding: 8px 7px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+.scorecard-table thead th { position: sticky; z-index: 3; color: var(--white); background: var(--navy); font-size: 10px; letter-spacing: 0; text-transform: uppercase; }
+.scorecard-table thead tr:first-child th { top: 0; height: 40px; }
+.scorecard-table thead tr:nth-child(2) th { top: 40px; height: 36px; color: var(--navy); background: var(--cyan-light); }
+.scorecard-table .player-heading { min-width: 232px; border-right: 2px solid var(--cyan); font-size: 12px; text-transform: none; }
+.scorecard-table .round-heading { left: 0; z-index: 5; min-width: 64px; border-right: 2px solid var(--cyan); }
+.scorecard-table tbody th { position: sticky; z-index: 2; left: 0; min-width: 64px; color: var(--navy); background: var(--gold-light); border-right: 2px solid var(--gold); font-size: 13px; }
+.scorecard-table tbody tr:nth-child(even) td { background: #f1f8fd; }
+.scorecard-table td:nth-child(4n + 1) { border-right-width: 2px; border-right-color: #9ec8e2; }
+.scorecard-table td.positive { color: var(--navy); font-weight: 800; }
+.scorecard-table td.negative { color: var(--red); font-weight: 800; }
+.scorecard-table td.total { color: var(--ink); background: var(--cyan-light); font-weight: 800; }
+.scorecard-table td.scorecard-empty { height: 88px; color: var(--muted); text-align: left; }
+.scorecard-table tbody tr:last-child th, .scorecard-table tbody tr:last-child td { border-bottom: 0; }
+.scorecard-table tr > *:last-child { border-right: 0; }
 
 .winner-section { padding: 30px 0 36px; text-align: center; border-bottom: 1px solid var(--line); }
 .winner-burst { display: grid; width: 72px; height: 72px; margin: 0 auto 20px; place-items: center; border-radius: 50%; color: #5a4511; background: var(--gold); font-size: 30px; }
@@ -322,10 +342,6 @@ p { line-height: 1.5; }
 .winner-section > strong { color: var(--navy); font-size: 20px; }
 .final-ranking { margin-top: 20px; border-top: 1px solid var(--line); }
 .summary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 28px; }
-
-.correction-tabs { display: grid; grid-template-columns: repeat(3, 1fr); margin-bottom: 28px; border-bottom: 1px solid var(--line); }
-.correction-tabs button { border-bottom: 3px solid transparent; background: transparent; font-weight: 800; }
-.correction-tabs button.selected { border-bottom-color: var(--red); color: var(--red); }
 
 .rules-view { padding-top: 0; }
 .rules-sections { border-top: 1px solid var(--line); }

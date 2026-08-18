@@ -1,7 +1,6 @@
 import {
   TRUMPS,
   biddingOrder,
-  clone,
   completeRound,
   createGame,
   cumulativePoints,
@@ -9,6 +8,7 @@ import {
   currentRound,
   findEntry,
   roundPoints,
+  scorecardRows,
   scoreEntry,
   standings,
   standardRoundCount,
@@ -22,11 +22,9 @@ let store = loadStore()
 let route = 'home'
 let setupNames = ['', '', '']
 let setupDealer = 0
-let viewedRoundNumber = null
-let correction = null
 let notice = ''
 let lastRenderKey = null
-let rulesReturn = { route: 'home', viewedRoundNumber: null }
+let rulesReturn = { route: 'home' }
 
 function activeGame() {
   return store.games.find((game) => game.id === store.activeGameId) ?? null
@@ -100,11 +98,9 @@ function bottomAction(label, action, options = {}) {
 
 function render() {
   const game = activeGame()
-  const round = game ? (viewedRoundNumber ? game.rounds.find((item) => item.number === viewedRoundNumber) : currentRound(game)) : null
+  const round = game ? currentRound(game) : null
   const renderKey = route === 'rules'
     ? 'rules'
-    : correction
-    ? `correction-${correction.roundNumber}-${correction.mode}`
     : route === 'round' && round
       ? `round-${round.number}-${round.phase}`
       : route
@@ -228,11 +224,7 @@ function renderSetup() {
 }
 
 function renderRound(game) {
-  const round = viewedRoundNumber
-    ? game.rounds.find((item) => item.number === viewedRoundNumber) ?? currentRound(game)
-    : currentRound(game)
-
-  if (correction && correction.roundNumber === round.number) return renderCorrection(game, round)
+  const round = currentRound(game)
 
   const dealer = game.players[round.dealerIndex]
   const firstBidder = biddingOrder(game, round)[0]
@@ -256,14 +248,13 @@ function renderRound(game) {
       ${round.phase === 'bidding' ? renderBiddingPhase(game, round) : ''}
       ${round.phase === 'tricks' ? renderTricksPhase(game, round) : ''}
       ${round.phase === 'review' ? renderReviewPhase(game, round) : ''}
-      ${round.phase === 'complete' ? renderCompletedRound(game, round) : ''}
     </main>
   `
 }
 
-function trumpButtons(selected, action = 'set-trump') {
+function trumpButtons(selected) {
   return `<div class="trump-picker" role="group" aria-label="Trump suit">
-    ${TRUMPS.map((trump) => `<button class="trump-button ${trump.tone} ${selected === trump.value ? 'selected' : ''}" data-action="${action}" data-trump="${trump.value}" aria-label="${trump.label}"><span>${trump.symbol}</span><small>${trump.value === 'none' ? 'None' : trump.label}</small></button>`).join('')}
+    ${TRUMPS.map((trump) => `<button class="trump-button ${trump.tone} ${selected === trump.value ? 'selected' : ''}" data-action="set-trump" data-trump="${trump.value}" aria-label="${trump.label}"><span>${trump.symbol}</span><small>${trump.value === 'none' ? 'None' : trump.label}</small></button>`).join('')}
   </div>`
 }
 
@@ -276,11 +267,10 @@ function renderTrumpPhase(round) {
   `
 }
 
-function numberControl(kind, entry, round, enabled, draft = false) {
+function numberControl(kind, entry, enabled) {
   const value = kind === 'bid' ? entry.bid : entry.tricksWon
-  const actionPrefix = draft ? 'draft-' : ''
-  const action = kind === 'bid' ? `${actionPrefix}adjust-bid` : `${actionPrefix}adjust-tricks`
-  const zeroAction = kind === 'bid' ? `${actionPrefix}zero-bid` : `${actionPrefix}zero-tricks`
+  const action = kind === 'bid' ? 'adjust-bid' : 'adjust-tricks'
+  const zeroAction = kind === 'bid' ? 'zero-bid' : 'zero-tricks'
   return `
     <div class="stepper ${enabled ? '' : 'disabled'}">
       <button data-action="${action}" data-player-id="${entry.playerId}" data-delta="-1" ${enabled ? '' : 'disabled'} aria-label="Decrease ${kind}">−</button>
@@ -307,7 +297,7 @@ function renderBiddingPhase(game, round) {
           const entry = findEntry(round, player.id)
           return `<div class="entry-row">
             <div class="entry-person"><span>${orderIndex + 1}</span><div><strong>${escapeHtml(player.name)}</strong><small>${orderIndex === 0 ? 'Bids first' : `Bids ${orderIndex + 1}${orderIndex === 1 ? 'nd' : orderIndex === 2 ? 'rd' : 'th'}`}</small></div></div>
-            ${numberControl('bid', entry, round, true)}
+            ${numberControl('bid', entry, true)}
           </div>`
         }).join('')}
       </div>
@@ -334,7 +324,7 @@ function renderTricksPhase(game, round) {
           const points = scoreEntry(entry)
           return `<div class="entry-row">
             <div class="entry-person"><div><strong>${escapeHtml(player.name)}</strong><small>Bid ${entry.bid}${points === null ? '' : ` · ${formatScore(points)} pts`}</small></div></div>
-            ${numberControl('tricks', entry, round, true)}
+            ${numberControl('tricks', entry, true)}
           </div>`
         }).join('')}
       </div>
@@ -355,7 +345,7 @@ function renderReviewPhase(game, round) {
   const priorTotals = cumulativePoints(game, round.number - 1)
   return `
     <section class="phase-section review-section">
-      <div class="screen-intro compact"><p class="kicker">Check before saving</p><h1>Round ${round.number} review</h1><p>Correct bids or tricks now, or edit this round later from standings.</p></div>
+      <div class="screen-intro compact"><p class="kicker">Check before saving</p><h1>Round ${round.number} review</h1><p>Correct bids or tricks now. Saved rounds are read-only in the scorecard.</p></div>
       <div class="score-columns" aria-hidden="true"><span>Player</span><span>Round</span><span>Total</span></div>
       <div class="score-list">
         ${game.players.map((player) => {
@@ -375,37 +365,36 @@ function renderReviewPhase(game, round) {
   `
 }
 
-function renderCompletedRound(game, round) {
-  const points = roundPoints(round)
-  return `
-    <section class="phase-section review-section">
-      <div class="screen-intro compact"><p class="kicker">Saved round</p><h1>Round ${round.number}</h1><p>${trumpInfo(round.trump).label} · ${escapeHtml(game.players[round.dealerIndex].name)} dealt</p></div>
-      <div class="score-list">
-        ${game.players.map((player) => {
-          const entry = findEntry(round, player.id)
-          return `<div class="score-row"><div><strong>${escapeHtml(player.name)}</strong><span>Bid ${entry.bid} · Won ${entry.tricksWon}</span></div><strong>${formatScore(points[player.id])}</strong></div>`
-        }).join('')}
-      </div>
-      <button class="secondary-button full" data-action="edit-completed-round" data-round="${round.number}">Edit round</button>
-      <button class="text-button edit-link" data-action="standings">Back to standings</button>
-    </section>
-  `
-}
-
 function renderStandings(game) {
   const ranked = standings(game)
-  const latest = currentRound(game)
+  const rows = scorecardRows(game)
   return `
-    ${appHeader('Standings', { backAction: game.completedAt ? 'summary' : 'round', eyebrow: game.completedAt ? 'Final scores' : `After round ${game.rounds.filter((round) => round.phase === 'complete').length}`, action: rulesButton() })}
+    ${appHeader(game.completedAt ? 'Round history' : 'Standings', { backAction: game.completedAt ? 'summary' : 'round', eyebrow: game.completedAt ? 'Complete scorecard' : `After round ${rows.length}`, action: rulesButton() })}
     <main class="screen-content standings-view">
       <section class="leaderboard">
         ${ranked.map((player, index) => `<div class="rank-row ${index === 0 ? 'leader' : ''}"><span class="rank">${index + 1}</span><strong>${escapeHtml(player.name)}</strong><span>${formatScore(player.score)}</span></div>`).join('')}
       </section>
       <section class="round-history">
-        <div class="section-heading"><p class="kicker">Score history</p><h2>Rounds</h2></div>
-        <div class="round-grid">
-          ${game.rounds.filter((round) => round.phase === 'complete').map((round) => `<button data-action="view-round" data-round="${round.number}"><strong>${round.number}</strong><span>${trumpInfo(round.trump).symbol}</span></button>`).join('')}
-          ${!game.completedAt ? `<button class="current" data-action="return-current"><strong>${latest.number}</strong><span>Now</span></button>` : ''}
+        <div class="section-heading"><p class="kicker">Every bid, trick, and point</p><h2>Complete scorecard</h2></div>
+        <div class="scorecard-scroll" role="region" aria-label="Complete scorecard" tabindex="0">
+          <table class="scorecard-table">
+            <caption class="sr-only">Bids, tricks won, round scores, and cumulative totals for every completed round and player</caption>
+            <thead>
+              <tr>
+                <th class="round-heading" rowspan="2" scope="col">Round</th>
+                ${game.players.map((player) => `<th class="player-heading" colspan="4" scope="colgroup">${escapeHtml(player.name)}</th>`).join('')}
+              </tr>
+              <tr>
+                ${game.players.map(() => '<th scope="col">Bid</th><th scope="col">Won</th><th scope="col">Round</th><th scope="col">Total</th>').join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.length ? rows.map((row) => `<tr>
+                <th scope="row">${row.roundNumber}</th>
+                ${row.players.map((player) => `<td>${player.bid}</td><td>${player.tricksWon}</td><td class="${player.roundScore >= 0 ? 'positive' : 'negative'}">${formatScore(player.roundScore)}</td><td class="total">${formatScore(player.totalScore)}</td>`).join('')}
+              </tr>`).join('') : `<tr><td class="scorecard-empty" colspan="${1 + game.players.length * 4}">No completed rounds yet.</td></tr>`}
+            </tbody>
+          </table>
         </div>
       </section>
     </main>
@@ -430,27 +419,6 @@ function renderSummary(game) {
       </section>
       <div class="summary-actions"><button class="secondary-button" data-action="standings">Round history</button><button class="primary-button" data-action="new-game">New game</button></div>
     </main>
-  `
-}
-
-function renderCorrection(game, originalRound) {
-  const draft = correction.draft
-  const mode = correction.mode
-  const status = tricksStatus(draft)
-  const valid = draft.trump && draft.entries.every((entry) => entry.bid !== null && entry.tricksWon !== null) && status.complete
-  return `
-    ${appHeader(`Correct round ${draft.number}`, { backAction: 'cancel-correction', eyebrow: 'Unsaved changes', action: rulesButton() })}
-    <main class="screen-content correction-view">
-      <div class="correction-tabs" role="tablist">
-        <button class="${mode === 'trump' ? 'selected' : ''}" data-action="correction-mode" data-mode="trump">Trump</button>
-        <button class="${mode === 'bids' ? 'selected' : ''}" data-action="correction-mode" data-mode="bids">Bids</button>
-        <button class="${mode === 'tricks' ? 'selected' : ''}" data-action="correction-mode" data-mode="tricks">Tricks</button>
-      </div>
-      ${mode === 'trump' ? `<section class="phase-section"><div class="screen-intro compact"><h1>Trump suit</h1></div>${trumpButtons(draft.trump, 'draft-set-trump')}</section>` : ''}
-      ${mode === 'bids' ? `<section class="phase-section"><div class="screen-intro compact"><h1>Correct bids</h1><p>Original bidding order is preserved.</p></div><div class="entry-list">${biddingOrder(game, draft).map((player, index) => { const entry = findEntry(draft, player.id); return `<div class="entry-row"><div class="entry-person"><span>${index + 1}</span><strong>${escapeHtml(player.name)}</strong></div>${numberControl('bid', entry, draft, true, true)}</div>` }).join('')}</div></section>` : ''}
-      ${mode === 'tricks' ? `<section class="phase-section"><div class="phase-heading"><div><h1>Correct tricks</h1><p>Enter in any order.</p></div><div class="round-count"><strong>${status.total}</strong><span>of ${draft.number}</span></div></div><div class="entry-list">${game.players.map((player) => { const entry = findEntry(draft, player.id); return `<div class="entry-row"><div class="entry-person"><strong>${escapeHtml(player.name)}</strong></div>${numberControl('tricks', entry, draft, true, true)}</div>` }).join('')}</div>${status.entered === game.players.length && !status.complete ? '<div class="phase-summary error"><p>Assigned tricks must equal the round number.</p></div>' : ''}</section>` : ''}
-    </main>
-    ${bottomAction('Save corrections', 'save-correction', { disabled: !valid, secondary: '<button class="secondary-button" data-action="cancel-correction">Cancel</button>' })}
   `
 }
 
@@ -502,19 +470,18 @@ root.addEventListener('click', (event) => {
   if (!button || button.disabled) return
   const action = button.dataset.action
   const game = activeGame()
-  const round = game ? (viewedRoundNumber ? game.rounds.find((item) => item.number === viewedRoundNumber) : currentRound(game)) : null
+  const round = game ? currentRound(game) : null
 
-  if (action === 'home') { route = 'home'; viewedRoundNumber = null; correction = null }
+  if (action === 'home') route = 'home'
   if (action === 'open-rules') {
-    rulesReturn = { route, viewedRoundNumber }
+    rulesReturn = { route }
     route = 'rules'
   }
   if (action === 'return-rules') {
     route = rulesReturn.route
-    viewedRoundNumber = rulesReturn.viewedRoundNumber
   }
   if (action === 'new-game') { setupNames = ['', '', '']; setupDealer = 0; route = 'setup' }
-  if (action === 'resume-game' && game) { viewedRoundNumber = null; route = game.completedAt ? 'summary' : 'round' }
+  if (action === 'resume-game' && game) route = game.completedAt ? 'summary' : 'round'
   if (action === 'add-player' && setupNames.length < 6) setupNames.push('')
   if (action === 'remove-player') { setupNames.splice(Number(button.dataset.index), 1); setupDealer = Math.min(setupDealer, setupNames.length - 1) }
   if (action === 'choose-dealer') setupDealer = Number(button.dataset.index)
@@ -523,7 +490,6 @@ root.addEventListener('click', (event) => {
       const newGame = createGame(setupNames, setupDealer)
       store.games.push(newGame)
       store.activeGameId = newGame.id
-      viewedRoundNumber = null
       route = 'round'
       persist()
     } catch (error) { setNotice(error.message) }
@@ -540,38 +506,20 @@ root.addEventListener('click', (event) => {
   if (action === 'edit-current-tricks' && round) { round.phase = 'tricks'; persist() }
   if (action === 'confirm-round' && round) {
     completeRound(game, round)
-    viewedRoundNumber = null
     route = game.completedAt ? 'summary' : 'round'
     persist()
   }
 
-  if (action === 'standings' && game) { viewedRoundNumber = null; route = 'standings' }
-  if (action === 'round' && game) { viewedRoundNumber = null; route = 'round' }
+  if (action === 'standings' && game) route = 'standings'
+  if (action === 'round' && game) route = 'round'
   if (action === 'summary' && game) route = 'summary'
-  if (action === 'return-current' && game) { viewedRoundNumber = null; route = 'round' }
-  if (action === 'view-round' && game) { viewedRoundNumber = Number(button.dataset.round); route = 'round' }
-  if (action === 'edit-completed-round' && round) correction = { roundNumber: round.number, mode: 'tricks', draft: clone(round) }
-  if (action === 'cancel-correction') correction = null
-  if (action === 'correction-mode' && correction) correction.mode = button.dataset.mode
-  if (action === 'draft-set-trump' && correction) correction.draft.trump = button.dataset.trump
-  if (action === 'draft-adjust-bid' && correction) adjustEntry(correction.draft, button.dataset.playerId, 'bid', Number(button.dataset.delta))
-  if (action === 'draft-zero-bid' && correction) zeroEntry(correction.draft, button.dataset.playerId, 'bid')
-  if (action === 'draft-adjust-tricks' && correction) adjustEntry(correction.draft, button.dataset.playerId, 'tricksWon', Number(button.dataset.delta))
-  if (action === 'draft-zero-tricks' && correction) zeroEntry(correction.draft, button.dataset.playerId, 'tricksWon')
-  if (action === 'save-correction' && correction && game) {
-    correction.draft.phase = 'complete'
-    game.rounds[correction.roundNumber - 1] = correction.draft
-    correction = null
-    persist()
-    setNotice('Round corrected. Standings updated.')
-  }
+  if (action === 'return-current' && game) route = 'round'
 
   if (action === 'export-data') exportStore(store)
   if (action === 'clear-data' && window.confirm('Delete every saved Wizard game from this phone?')) {
     clearStore()
     store = loadStore()
     route = 'home'
-    viewedRoundNumber = null
   }
 
   render()

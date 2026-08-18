@@ -75,7 +75,7 @@ This proposal outlines a mobile-first UX for tracking Wizard card game scores. U
   - Select **None** when a Jester is revealed or when no undealt card remains, as in a standard final round
   - If a Wizard is revealed, the dealer chooses one of the four suits
 - After selection, show the trump symbol as an oversized, immediately recognizable round-header element rather than inline text
-- Header actions: return home or open standings; completed rounds are accessed from the standings history
+- Header actions: return home or open standings; completed rounds appear together in the standings scorecard
 
 **Section B: Player Bid Entry**
 - **During Bidding Phase:** Players bid clockwise, starting with the player immediately after the dealer
@@ -100,7 +100,7 @@ This proposal outlines a mobile-first UX for tracking Wizard card game scores. U
 - After all entries: show per-player scores for this round
 - Show bid and tricks won beneath each player name
 - Present **Round** and **Total** as two labeled, right-aligned numeric columns using equal-size tabular numerals; reserve enough width for total scores in the hundreds
-- An **Edit Round** action reopens bids or tricks; saving the correction recalculates this and all later cumulative totals
+- **Correct Bids** and **Correct Tricks** remain available on the review screen before the round is saved
 
 **Layout - Bid Phase:**
 ```
@@ -165,37 +165,42 @@ This proposal outlines a mobile-first UX for tracking Wizard card game scores. U
 ---
 
 ### 3. **Leaderboard / Standings Screen**
-*View current scores and game progress*
+*View current ranking and the complete traditional scorecard*
 
-**Purpose:** See cumulative scores after each round or check anytime
+**Purpose:** See cumulative scores and compare every completed round for every player in one place.
 
 **Key Elements:**
 - Player rankings sorted by total score (highest first)
-- Round-by-round breakdown in collapsible accordion or detail view
-- Current round indicator
-- "Game Summary" option to see all scores
+- One read-only scorecard below the ranking, modeled on the traditional paper score sheet
+- One row per completed round, in ascending round order
+- One grouped column per player, preserving seating order rather than ranking order
+- Four metrics inside every player group for every round:
+  - **Bid:** predicted tricks
+  - **Won:** tricks won
+  - **Round:** points earned or lost in that round
+  - **Total:** cumulative points through that round
+- A sticky left **Round** column and sticky two-row header while scrolling
+- Horizontal and vertical scrolling within the bounded scorecard region, leaving the ranking and navigation stable
+- During an active game, only completed rounds appear and **Continue game** remains fixed at the bottom
+- After the final round, **Round history** on the Game Summary opens this complete scorecard
+- The former round-number grid, individual saved-round detail screen, and historical-round correction flow are removed
 
 **Layout:**
 ```
-┌──────────────────────────────┐
-│   Standings - Round 5/15      │
-├──────────────────────────────┤
-│ 1. Player 3         +185 pts  │
-│    (Bid: 1, Won: 1, +30 this) │
-│                               │
-│ 2. Player 1         +140 pts  │
-│    (Bid: 0, Won: 0, +20 this) │
-│                               │
-│ 3. Player 2         +105 pts  │
-│    (Bid: 2, Won: 3, -10 this) │
-│                               │
-│ 4. Player 4          +75 pts  │
-│    (Bid: 2, Won: 1, -10 this) │
-│                               │
-│ ┌──────────────────────────┐ │
-│ │  ← Back to Scoring       │ │
-│ └──────────────────────────┘ │
-└──────────────────────────────┘
+┌────────────────────────────────────────────────────→
+│ Standings                                             │
+│ 1  Player 3  +185     2  Player 1  +140              │
+│                                                       │
+│ Complete scorecard                                    │
+│ ┌───────┬───────────────────────┬───────────────────→ │
+│ │       │ Player 1              │ Player 2            │
+│ │ Round │ Bid │ Won │ Rnd │ Tot │ Bid │ Won │ Rnd... │
+│ ├───────┼─────┼─────┼─────┼─────┼─────┼─────┼─────── │
+│ │   1   │  0  │  0  │ +20 │ +20 │  1  │  0  │ -10   │
+│ │   2   │  1  │  1  │ +30 │ +50 │  0  │  2  │ -20   │
+│ │  ...  │ ... │ ... │ ... │ ... │ ... │ ... │ ...   │
+│ └───────┴─────┴─────┴─────┴─────┴─────┴─────┴─────── │
+└───────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -331,7 +336,7 @@ Why: More reliable than tapping number pad on phone
 - Color coded (black spades/clubs, red hearts/diamonds)
 - Use a substantially larger symbol in the persistent round header so trump can be recognized at a glance from across the table
 - Show **No Trump** prominently when **None** is selected
-- Default the standard final round to **None** because all cards are dealt; allow correction in case custom rules are used
+- Default the standard final round to **None** because all cards are dealt; allow correction while the round is in progress if custom rules are used
 
 ### 3. **The Hook Indicator**
 - Display total bids vs. available tricks in real-time
@@ -344,9 +349,7 @@ Why: More reliable than tapping number pad on phone
 - Place a compact **Correct Bids** action below **Score Round**, keeping the scoring action visually primary
 - **After bids are confirmed:** An **Edit Bids** action returns to bidding and preserves entered tricks; changed bids immediately recalculate score previews
 - Place a compact **Correct Tricks** action below **Save & Start Next Round** on the review screen
-- **After a round is completed:** **Edit Round** opens the saved round with **Cancel** and **Save Corrections** actions
-- Saving a past-round correction recalculates cumulative standings from that round onward and displays a concise before/after score summary
-- A completed round is never silently overwritten; navigating back is read-only until **Edit Round** is selected
+- **After a round is completed:** Its bid, won, round-score, and cumulative-total values are read-only in the complete scorecard
 
 ### 5. **Keyboard Avoidance**
 - Stepper buttons minimize keyboard entry
@@ -412,13 +415,6 @@ Results section:
 - Compact "Correct Tricks" action directly below the save button
 - Standings remains available from the header
 - Saving commits the round and updates cumulative standings
-```
-
-### State 5: Saved Round
-```
-Completed rounds are opened from standings in read-only mode.
-An "Edit Round" action reopens trump, bids, or tricks using a draft.
-"Save Corrections" recalculates standings from that round onward.
 ```
 
 ---
@@ -511,7 +507,7 @@ User sees Round 5, Player 4 as dealer, Player 1 as first bidder, and selects tru
 - User taps "Score Round"
 - Untouched tricks are converted to zero and the aligned Round Review opens
 - Scores remain editable at this stage
-- If an error is noticed later, **Edit Round** reopens the saved values; **Save Corrections** recalculates affected standings
+- Historical rounds are read-only in the complete scorecard after they are saved
 
 ### Step 6: Continue or View
 - User taps "Save & start round 6" to commit scores and update cumulative totals
@@ -579,7 +575,7 @@ Use one full-screen shell with these views:
 - **Setup:** Enter clockwise player order and select the first dealer
 - **Round:** Select trump, collect ordered bids, then collect tricks in any order
 - **Round Review:** Confirm scores or reopen values for correction
-- **Standings:** Show cumulative ranking and access completed rounds
+- **Standings:** Show cumulative ranking and one all-player, all-round scorecard
 - **Game Summary:** Final ranking and start-new-game action
 - **Rules & FAQ:** Browse the embedded reference and return to the exact originating view
 
@@ -607,7 +603,7 @@ AppData
       └── playerId, bid, tricksWon
 ```
 
-The current implementation stores this versioned document as one JSON value in `localStorage`, behind a small storage module. Persist after every meaningful input and correction. Keep completed-round corrections in a draft until the user saves them. Scores are always recalculated from bids and tricks rather than stored as editable source data. The dataset is small enough that IndexedDB is not required.
+The current implementation stores this versioned document as one JSON value in `localStorage`, behind a small storage module. Persist after every meaningful input and pre-save correction. Scores are always recalculated from bids and tricks rather than stored as editable source data. The dataset is small enough that IndexedDB is not required.
 
 ### Offline and Update Behavior
 
@@ -647,7 +643,7 @@ Include:
 - Dealer rotation and ordered bidding
 - Five trump states, including none
 - Free-order tricks entry with implicit zeros when the trick total is reached
-- Single-confirm ordered bids and corrections at every stage
+- Single-confirm ordered bids and corrections before each round is saved
 - Automatic validation and scoring
 - Aligned Round/Total review columns, standings, final summary, offline use, and resume after relaunch
 - Offline Rules & FAQ with one-tap return to the originating screen
@@ -670,6 +666,7 @@ Before considering the app ready for phone use, verify:
 - Tricks can be entered in any order; Score Round enables when their total equals the round number, and untouched players become zero.
 - Bid/trick stepper changes do not animate or shift the same-screen layout.
 - Round and Total columns remain aligned for positive and negative three-digit scores on a small iPhone viewport.
+- Round history shows one scorecard with every completed round and, for every player, Bid, Won, Round, and Total metrics; both scroll directions remain usable on a small iPhone viewport.
 - Rules & FAQ can be opened from Home and during a round, shows the complete reference, and returns to the exact originating route without changing game state.
 - The complete rules reference remains available in airplane mode.
 - An active game survives closing the app, restarting the phone, and reopening it.
