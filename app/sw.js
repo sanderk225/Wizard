@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wizard-scores-v14'
+const CACHE_NAME = 'wizard-scores-v15'
 const APP_SHELL = [
   './',
   './index.html',
@@ -8,7 +8,6 @@ const APP_SHELL = [
   './storage.js',
   './rules.js',
   './manifest.webmanifest',
-  './icon.svg',
   './icon-180.png',
   './icon-512.png',
 ]

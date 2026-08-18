@@ -678,16 +678,56 @@ Before considering the app ready for phone use, verify:
 
 ---
 
-## Implemented Color Scheme
+## Wizard Brand Theme
 
-| Element | Color | Use |
-|---------|-------|-----|
-| Primary | Deep green (#153F3B) | Main actions, brand, positive structure |
-| Positive score | Green (#177054) | Correct-bid round scores |
-| Negative / warning | Red (#C63F2F) | Missed bids, destructive actions, red suits |
-| Accent | Gold (#E4B843) | Progress, leaders, focused context |
-| Neutral | Gray (#68706D) | Supporting labels and secondary text |
-| Background | Paper (#F7F3E9) | High-contrast light application surface |
+Use the user-supplied `Wizard_colors_and_Logo.jpg` artwork as the visual source for the app theme. The interface should feel related to the official Wizard package through its saturated red, yellow, and blue palette, radial blue energy, outlined display lettering, and crisp white framing. Preserve the scorekeeper's compact operational layout; do not reproduce the package as a background or reduce readability with decorative detail.
+
+### App Icon and Brand Mark
+
+- Crop the central artwork containing the yellow **WIZARD** wordmark, red diamond, and blue radial field into a square composition.
+- Exclude the package header, cards, sales message, suit corner medallions, "Card Game" plaque, and bidding tagline from the icon.
+- Preserve the supplied artwork rather than recreating or approximating its distinctive lettering.
+- Generate 180 px and 512 px PNG icons from the same square crop for iOS and the web-app manifest.
+- Use the same cropped artwork as the compact header mark and the larger Home brand mark so the installed icon and in-app identity agree.
+- Keep important lettering inside a generous safe area so iOS rounded-corner masking does not clip the wordmark.
+
+### Implemented Color Scheme
+
+| Token | Color | Use |
+|-------|-------|-----|
+| Brand navy | `#073B72` | Header structure, secondary actions, outlines, supporting controls |
+| Brand blue | `#078FCB` | Home hero field and blue emphasis |
+| Brand cyan | `#20BCEB` | Radial hero detail, focus ring, light active structure |
+| Brand red | `#E5242F` | Visual accents, missed bids, red suits, destructive actions |
+| Action red | `#C9162B` | Accessible primary buttons with white labels |
+| Brand gold | `#FFD23F` | Progress, current player, leader, and selected context |
+| Ink | `#102A43` | Main text on light surfaces |
+| Muted blue-gray | `#5C6F82` | Supporting labels and secondary text |
+| App surface | `#F7FBFF` | Cool, high-contrast application background |
+| Raised surface | `#FFFFFF` | Inputs, controls, and repeated rows |
+
+Positive scores use brand navy rather than introducing green. Negative scores and destructive actions use red. Trump suits retain conventional black and red coloring. Gold is reserved for temporary attention and winning/current states, not body text.
+
+### Branded Surface Treatment
+
+- Home uses a deep-blue-to-bright-blue field with a restrained cyan radial burst behind the wordmark.
+- Top bars and fixed bottom actions use cool white surfaces with navy structure and blue-gray dividers.
+- Primary commands use accessible action red; secondary commands use navy outlines.
+- Selected chips and selected trump controls use navy with pale cyan support.
+- Current-player rows, progress, leaders, and FAQ accents use gold.
+- Content screens remain predominantly light to support repeated score entry and table-side scanning.
+- Typography remains the existing readable display-serif and sans-serif pairing; the official lettering appears only in the supplied wordmark asset.
+
+### Brand Theme Implementation Checklist
+
+1. Produce square 180 px and 512 px icons from the central supplied artwork.
+2. Replace the generic geometric SVG mark in the Home hero, app header, browser icon, iOS touch icon, and manifest.
+3. Replace green/cream theme tokens with the documented blue/red/yellow system.
+4. Add the restrained blue radial treatment to the Home hero and update its text contrast.
+5. Restyle primary, secondary, selected, progress, active-row, leader, scoring, Rules & FAQ, and focus states with the new semantic mappings.
+6. Update browser and manifest theme/background colors.
+7. Increment the service-worker cache so installed phones receive the new artwork and styles.
+8. Verify the Home, game setup, round entry, standings, Rules & FAQ, and installed icon at small and current iPhone sizes.
 
 ---
 
